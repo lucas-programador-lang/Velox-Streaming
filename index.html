@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VELOX — Streaming Premium</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:      #C9A84C;
+      --gold-lt:   #E8C96A;
+      --gold-dk:   #7A5C1E;
+      --obsidian:  #08090B;
+      --ink:       #0E0F12;
+      --surface:   #13141A;
+      --card:      #1A1B22;
+      --card-hover:#22232C;
+      --border:    rgba(201,168,76,.18);
+      --text:      #F0EDE8;
+      --muted:     #8A8A96;
+      --dim:       #50505C;
+      --danger:    #E5534B;
+      --radius:    12px;
+      --radius-lg: 20px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--obsidian);
+      color: var(--text);
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--obsidian); }
+    ::-webkit-scrollbar-thumb { background: var(--gold-dk); border-radius: 3px; }
+
+    /* ─────────────────────────────────────────
+       NAVBAR
+    ───────────────────────────────────────── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5vw;
+      height: 72px;
+      background: linear-gradient(to bottom, rgba(8,9,11,.96) 60%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      transition: background .3s;
+    }
+
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 700; letter-spacing: .12em;
+      background: linear-gradient(135deg, var(--gold-lt) 0%, var(--gold) 50%, var(--gold-dk) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex; gap: 2rem; list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted); text-decoration: none; font-size: .9rem;
+      font-weight: 500; letter-spacing: .04em; transition: color .2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: -4px; left: 0;
+      width: 0; height: 1px; background: var(--gold);
+      transition: width .3s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+    .btn-ghost {
+      padding: .5rem 1.2rem; border: 1px solid var(--border);
+      border-radius: 6px; background: transparent;
+      color: var(--text); font-family: 'Outfit', sans-serif;
+      font-size: .85rem; font-weight: 500; cursor: pointer;
+      transition: all .2s; letter-spacing: .04em;
+    }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+    .btn-gold {
+      padding: .5rem 1.4rem; border: none; border-radius: 6px;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      color: var(--obsidian); font-family: 'Outfit', sans-serif;
+      font-size: .85rem; font-weight: 700; cursor: pointer;
+      transition: all .25s; letter-spacing: .04em;
+      box-shadow: 0 0 18px rgba(201,168,76,.25);
+    }
+    .btn-gold:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 28px rgba(201,168,76,.4);
+    }
+
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px;
+      background: transparent; border: none; cursor: pointer; padding: 4px;
+    }
+    .hamburger span {
+      display: block; width: 24px; height: 2px;
+      background: var(--gold); border-radius: 2px; transition: .3s;
+    }
+
+    /* mobile menu */
+    .mobile-menu {
+      display: none; position: fixed; top: 72px; left: 0; right: 0;
+      background: rgba(13,14,18,.98); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      flex-direction: column; padding: 1.5rem 5vw 2rem;
+      z-index: 998; gap: 1rem;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      color: var(--muted); text-decoration: none;
+      font-size: 1rem; font-weight: 500; padding: .5rem 0;
+      border-bottom: 1px solid var(--border); transition: color .2s;
+    }
+    .mobile-menu a:hover { color: var(--gold); }
+    .mobile-menu-btns { display: flex; gap: 1rem; margin-top: .5rem; }
+    .mobile-menu-btns .btn-ghost, .mobile-menu-btns .btn-gold { flex: 1; text-align: center; }
+
+    /* ─────────────────────────────────────────
+       HERO
+    ───────────────────────────────────────── */
+    .hero {
+      position: relative; min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 0 5vw 8vh;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        linear-gradient(to right, rgba(8,9,11,.92) 40%, rgba(8,9,11,.2) 100%),
+        linear-gradient(to top,   rgba(8,9,11,.98) 0%,  transparent 50%);
+    }
+
+    .hero-bg-img {
+      position: absolute; inset: 0; z-index: -1;
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 40%, rgba(60,40,10,.5) 0%, transparent 70%),
+        url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&auto=format&fit=crop') center/cover no-repeat;
+    }
+
+    /* film-grain overlay */
+    .hero-grain {
+      position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .06;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+
+    .hero-tag {
+      position: relative; z-index: 2;
+      display: inline-flex; align-items: center; gap: .5rem;
+      font-size: .75rem; font-weight: 600; letter-spacing: .14em;
+      color: var(--gold); text-transform: uppercase;
+      border: 1px solid var(--gold-dk); padding: .3rem .8rem;
+      border-radius: 4px; margin-bottom: 1.2rem;
+      background: rgba(201,168,76,.08);
+    }
+    .hero-tag::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold); animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: .4; transform: scale(.7); }
+    }
+
+    .hero-title {
+      position: relative; z-index: 2;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 700; line-height: 1.02;
+      letter-spacing: -.01em; margin-bottom: 1.2rem;
+      max-width: 720px;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .hero-meta {
+      position: relative; z-index: 2;
+      display: flex; align-items: center; gap: 1rem;
+      font-size: .85rem; color: var(--muted); margin-bottom: 1.4rem;
+      flex-wrap: wrap;
+    }
+    .hero-meta span { display: flex; align-items: center; gap: .4rem; }
+    .hero-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--dim); }
+    .hero-meta .rating { color: var(--gold); font-weight: 600; }
+    .badge {
+      font-size: .7rem; font-weight: 700; letter-spacing: .08em;
+      padding: .2rem .6rem; border-radius: 3px;
+      background: var(--gold); color: var(--obsidian);
+    }
+    .badge.hd { background: rgba(201,168,76,.15); color: var(--gold); border: 1px solid var(--gold-dk); }
+
+    .hero-desc {
+      position: relative; z-index: 2;
+      max-width: 520px; font-size: 1rem; line-height: 1.7;
+      color: rgba(240,237,232,.7); margin-bottom: 2rem;
+    }
+
+    .hero-actions {
+      position: relative; z-index: 2;
+      display: flex; gap: 1rem; flex-wrap: wrap;
+    }
+
+    .btn-play {
+      display: inline-flex; align-items: center; gap: .7rem;
+      padding: .85rem 2rem; border: none; border-radius: 8px;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      color: var(--obsidian); font-family: 'Outfit', sans-serif;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: all .3s; letter-spacing: .04em;
+      box-shadow: 0 0 30px rgba(201,168,76,.35);
+    }
+    .btn-play svg { width: 20px; height: 20px; }
+    .btn-play:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 40px rgba(201,168,76,.5);
+    }
+
+    .btn-info {
+      display: inline-flex; align-items: center; gap: .7rem;
+      padding: .85rem 2rem; border: 1px solid rgba(240,237,232,.25);
+      border-radius: 8px; background: rgba(255,255,255,.06);
+      backdrop-filter: blur(8px);
+      color: var(--text); font-family: 'Outfit', sans-serif;
+      font-size: 1rem; font-weight: 500; cursor: pointer;
+      transition: all .3s; letter-spacing: .04em;
+    }
+    .btn-info svg { width: 20px; height: 20px; }
+    .btn-info:hover {
+      background: rgba(255,255,255,.12); border-color: rgba(240,237,232,.5);
+    }
+
+    /* scroll indicator */
+    .scroll-hint {
+      position: absolute; bottom: 2.5rem; right: 5vw; z-index: 2;
+      display: flex; flex-direction: column; align-items: center; gap: .5rem;
+      opacity: .45;
+    }
+    .scroll-hint span { font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .scroll-line {
+      width: 1px; height: 40px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+      animation: scrollAnim 2s infinite;
+    }
+    @keyframes scrollAnim {
+      0%,100% { transform: scaleY(1); opacity: .4; }
+      50%      { transform: scaleY(.5); opacity: 1; }
+    }
+
+    /* ─────────────────────────────────────────
+       SECTIONS COMMON
+    ───────────────────────────────────────── */
+    section { padding: 5rem 5vw; }
+
+    .section-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 2.5rem; gap: 1rem;
+    }
+    .section-label {
+      font-size: .7rem; font-weight: 700; letter-spacing: .16em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: .5rem;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 600; line-height: 1.1;
+    }
+    .see-all {
+      font-size: .8rem; font-weight: 600; letter-spacing: .06em;
+      color: var(--gold); text-decoration: none;
+      display: flex; align-items: center; gap: .3rem;
+      white-space: nowrap; transition: gap .2s;
+    }
+    .see-all:hover { gap: .6rem; }
+
+    /* ─────────────────────────────────────────
+       CARDS RAIL (horizontal scroll)
+    ───────────────────────────────────────── */
+    .rail {
+      display: flex; gap: 1.1rem; overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 1rem;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .rail::-webkit-scrollbar { display: none; }
+
+    .card {
+      flex: 0 0 220px; scroll-snap-align: start;
+      border-radius: var(--radius); overflow: hidden;
+      background: var(--card); position: relative;
+      cursor: pointer; transition: transform .3s, box-shadow .3s;
+      border: 1px solid transparent;
+    }
+
+    @media(min-width:1400px) { .card { flex: 0 0 240px; } }
+
+    .card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 20px 50px rgba(0,0,0,.7), 0 0 0 1px var(--border);
+    }
+
+    .card-thumb {
+      width: 100%; aspect-ratio: 2/3; object-fit: cover;
+      display: block; transition: transform .4s;
+    }
+    .card:hover .card-thumb { transform: scale(1.04); }
+
+    .card-thumb-wrap { overflow: hidden; position: relative; }
+
+    /* gold top border on hover */
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0; transition: opacity .3s; z-index: 2;
+    }
+    .card:hover::before { opacity: 1; }
+
+    .card-overlay {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(to top, rgba(8,9,11,.96) 0%, rgba(8,9,11,.4) 45%, transparent 70%);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 1rem; opacity: 0; transition: opacity .3s;
+    }
+    .card:hover .card-overlay { opacity: 1; }
+
+    .card-overlay-title {
+      font-size: .9rem; font-weight: 600; margin-bottom: .4rem;
+    }
+    .card-overlay-meta {
+      font-size: .72rem; color: var(--muted);
+      display: flex; gap: .5rem; align-items: center;
+    }
+    .card-overlay-meta .star { color: var(--gold); }
+
+    .card-play-btn {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%) scale(.7);
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(201,168,76,.9); display: flex;
+      align-items: center; justify-content: center;
+      opacity: 0; transition: all .3s; z-index: 2;
+    }
+    .card:hover .card-play-btn {
+      opacity: 1; transform: translate(-50%,-50%) scale(1);
+    }
+
+    .card-info { padding: .9rem 1rem 1rem; }
+    .card-title {
+      font-size: .88rem; font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: .3rem;
+    }
+    .card-sub {
+      font-size: .72rem; color: var(--muted);
+      display: flex; gap: .5rem; align-items: center;
+    }
+    .card-sub .genre-dot {
+      width: 3px; height: 3px; border-radius: 50%; background: var(--dim);
+    }
+
+    /* ─────────────────────────────────────────
+       FEATURED STRIP (wide landscape card)
+    ───────────────────────────────────────── */
+    .featured-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.4rem;
+    }
+
+    .featured-card {
+      border-radius: var(--radius-lg); overflow: hidden;
+      position: relative; cursor: pointer;
+      transition: transform .3s, box-shadow .3s;
+      aspect-ratio: 16/9;
+    }
+    .featured-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    }
+    .featured-card img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform .5s;
+    }
+    .featured-card:hover img { transform: scale(1.04); }
+    .featured-card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(8,9,11,.95) 0%, rgba(8,9,11,.2) 60%, transparent);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 1.5rem;
+    }
+    .featured-card-tag {
+      font-size: .65rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: .4rem;
+    }
+    .featured-card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 600; margin-bottom: .3rem;
+    }
+    .featured-card-sub {
+      font-size: .75rem; color: var(--muted);
+      display: flex; gap: .5rem; align-items: center;
+    }
+
+    /* ─────────────────────────────────────────
+       CATEGORIES PILLS
+    ───────────────────────────────────────── */
+    .categories { padding: 2rem 5vw 0; }
+
+    .pills {
+      display: flex; gap: .7rem; overflow-x: auto;
+      scrollbar-width: none; padding-bottom: .5rem;
+    }
+    .pills::-webkit-scrollbar { display: none; }
+
+    .pill {
+      flex-shrink: 0; padding: .5rem 1.2rem; border-radius: 999px;
+      font-size: .8rem; font-weight: 500; cursor: pointer;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--muted); transition: all .2s; letter-spacing: .03em;
+      font-family: 'Outfit', sans-serif;
+    }
+    .pill:hover, .pill.active {
+      border-color: var(--gold); color: var(--gold);
+      background: rgba(201,168,76,.08);
+    }
+
+    /* ─────────────────────────────────────────
+       STATS BAND
+    ───────────────────────────────────────── */
+    .stats-band {
+      background: linear-gradient(135deg, rgba(201,168,76,.06) 0%, transparent 60%);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 3.5rem 5vw;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 2rem; text-align: center;
+    }
+    .stat-item {}
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: .8rem; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted); margin-top: .4rem;
+    }
+
+    /* ─────────────────────────────────────────
+       PLANS
+    ───────────────────────────────────────── */
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.4rem; margin-top: 3rem;
+    }
+
+    .plan-card {
+      border-radius: var(--radius-lg); padding: 2rem;
+      border: 1px solid var(--border); background: var(--card);
+      position: relative; overflow: hidden; transition: transform .3s, box-shadow .3s;
+    }
+    .plan-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,0,0,.4);
+    }
+    .plan-card.featured-plan {
+      border-color: var(--gold);
+      background: linear-gradient(145deg, rgba(201,168,76,.08) 0%, var(--card) 60%);
+    }
+    .plan-card.featured-plan::before {
+      content: 'MAIS POPULAR';
+      position: absolute; top: 1.2rem; right: -1.8rem;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      color: var(--obsidian); font-size: .6rem; font-weight: 800;
+      letter-spacing: .12em; padding: .25rem 2.5rem;
+      transform: rotate(35deg); transform-origin: right top;
+    }
+
+    .plan-tier {
+      font-size: .7rem; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 1rem;
+    }
+    .plan-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3.2rem; font-weight: 700; line-height: 1;
+      margin-bottom: .2rem;
+    }
+    .plan-price sup { font-size: 1.2rem; vertical-align: super; }
+    .plan-price sub { font-size: .9rem; color: var(--muted); }
+    .plan-desc { font-size: .85rem; color: var(--muted); margin-bottom: 1.5rem; }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: .7rem; margin-bottom: 2rem; }
+    .plan-features li {
+      display: flex; align-items: center; gap: .6rem;
+      font-size: .85rem; color: rgba(240,237,232,.8);
+    }
+    .plan-features li::before {
+      content: ''; width: 16px; height: 16px; flex-shrink: 0; border-radius: 50%;
+      background: rgba(201,168,76,.12); border: 1px solid var(--gold-dk);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3 8l3.5 3.5L13 4.5' stroke='%23C9A84C' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-size: cover;
+    }
+    .plan-btn {
+      width: 100%; padding: .85rem; border-radius: 8px;
+      font-family: 'Outfit', sans-serif; font-size: .9rem;
+      font-weight: 600; cursor: pointer; letter-spacing: .04em;
+      transition: all .25s;
+    }
+    .plan-btn-outline {
+      background: transparent; border: 1px solid var(--border); color: var(--text);
+    }
+    .plan-btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+    .plan-btn-filled {
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      border: none; color: var(--obsidian);
+      box-shadow: 0 0 24px rgba(201,168,76,.3);
+    }
+    .plan-btn-filled:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 32px rgba(201,168,76,.5);
+    }
+
+    /* ─────────────────────────────────────────
+       FAQ ACCORDION
+    ───────────────────────────────────────── */
+    .faq-list { display: flex; flex-direction: column; gap: .8rem; max-width: 800px; margin: 0 auto; }
+
+    .faq-item {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--card); overflow: hidden;
+    }
+
+    .faq-q {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 1.5rem; background: transparent; border: none;
+      color: var(--text); font-family: 'Outfit', sans-serif;
+      font-size: .95rem; font-weight: 500; cursor: pointer;
+      text-align: left; gap: 1rem;
+    }
+    .faq-q:hover { color: var(--gold); }
+
+    .faq-icon {
+      width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%;
+      border: 1px solid var(--dim); display: flex; align-items: center;
+      justify-content: center; transition: transform .3s, border-color .3s;
+    }
+    .faq-item.open .faq-icon {
+      transform: rotate(45deg); border-color: var(--gold);
+    }
+    .faq-icon svg { width: 12px; height: 12px; }
+
+    .faq-a {
+      max-height: 0; overflow: hidden;
+      padding: 0 1.5rem;
+      font-size: .88rem; line-height: 1.75; color: var(--muted);
+      transition: max-height .4s ease, padding .3s;
+    }
+    .faq-item.open .faq-a {
+      max-height: 300px; padding: 0 1.5rem 1.3rem;
+    }
+
+    /* ─────────────────────────────────────────
+       DEVICES SECTION
+    ───────────────────────────────────────── */
+    .devices-section {
+      background: linear-gradient(135deg, var(--surface), var(--ink));
+      padding: 5rem 5vw;
+    }
+
+    .devices-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: center;
+      max-width: 1100px; margin: 0 auto;
+    }
+
+    .devices-text .section-label { margin-bottom: .5rem; }
+    .devices-text .section-title { margin-bottom: 1rem; }
+    .devices-text p {
+      color: var(--muted); font-size: .95rem; line-height: 1.75; margin-bottom: 2rem;
+    }
+
+    .devices-icons {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .device-icon-card {
+      padding: 1.2rem; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--card);
+      display: flex; flex-direction: column; align-items: center;
+      gap: .6rem; font-size: .8rem; color: var(--muted);
+      transition: border-color .2s;
+    }
+    .device-icon-card:hover { border-color: var(--gold); color: var(--text); }
+    .device-icon-card svg { width: 32px; height: 32px; color: var(--gold); }
+
+    .devices-visual {
+      position: relative; display: flex; justify-content: center; align-items: center;
+    }
+
+    .tv-frame {
+      width: 100%; max-width: 420px;
+      background: #111; border-radius: 16px;
+      padding: 10px; box-shadow: 0 30px 80px rgba(0,0,0,.7);
+      border: 2px solid #222;
+    }
+    .tv-screen {
+      width: 100%; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden;
+      position: relative;
+    }
+    .tv-screen img { width: 100%; height: 100%; object-fit: cover; }
+    .tv-screen-ui {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(8,9,11,.9) 0%, transparent 50%);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 1rem;
+    }
+    .tv-screen-ui .tv-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 600; margin-bottom: .3rem;
+    }
+    .tv-progress {
+      width: 100%; height: 3px; background: rgba(255,255,255,.2); border-radius: 2px;
+    }
+    .tv-progress-fill {
+      height: 100%; width: 65%; border-radius: 2px;
+      background: linear-gradient(90deg, var(--gold-lt), var(--gold));
+    }
+    .tv-stand {
+      width: 40%; height: 20px; background: #111; margin: 0 auto;
+      clip-path: polygon(20% 0%, 80% 0%, 95% 100%, 5% 100%);
+    }
+    .tv-base {
+      width: 50%; height: 8px; background: #1a1a1a;
+      border-radius: 4px; margin: 0 auto;
+    }
+
+    .glow-orb {
+      position: absolute; width: 300px; height: 300px;
+      border-radius: 50%; pointer-events: none;
+      background: radial-gradient(circle, rgba(201,168,76,.12) 0%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+    }
+
+    /* ─────────────────────────────────────────
+       CTA BANNER
+    ───────────────────────────────────────── */
+    .cta-banner {
+      margin: 0 5vw 5rem;
+      border-radius: var(--radius-lg); padding: 4rem 3rem;
+      background:
+        linear-gradient(135deg, rgba(201,168,76,.1) 0%, transparent 50%),
+        var(--card);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 2rem; flex-wrap: wrap;
+      position: relative; overflow: hidden;
+    }
+    .cta-banner::before {
+      content: ''; position: absolute;
+      top: -60px; right: -60px; width: 280px; height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-text { flex: 1; min-width: 220px; }
+    .cta-text .section-label { margin-bottom: .5rem; }
+    .cta-text h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 600; line-height: 1.15;
+      margin-bottom: .8rem;
+    }
+    .cta-text p { font-size: .9rem; color: var(--muted); }
+    .cta-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+    /* ─────────────────────────────────────────
+       FOOTER
+    ───────────────────────────────────────── */
+    footer {
+      background: var(--ink);
+      border-top: 1px solid var(--border);
+      padding: 4rem 5vw 2rem;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; margin-bottom: 3rem;
+    }
+    .footer-brand .nav-logo { display: inline-block; margin-bottom: 1rem; }
+    .footer-brand p { font-size: .85rem; color: var(--muted); line-height: 1.7; max-width: 280px; }
+
+    .footer-col h4 {
+      font-size: .75rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 1.2rem;
+    }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
+    .footer-col li a {
+      font-size: .85rem; color: var(--muted); text-decoration: none;
+      transition: color .2s;
+    }
+    .footer-col li a:hover { color: var(--text); }
+
+    .footer-bottom {
+      border-top: 1px solid var(--border); padding-top: 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap;
+    }
+    .footer-bottom p { font-size: .78rem; color: var(--dim); }
+
+    .social-row { display: flex; gap: .7rem; }
+    .social-btn {
+      width: 36px; height: 36px; border-radius: 8px;
+      border: 1px solid var(--border); background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .2s; color: var(--muted);
+    }
+    .social-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .social-btn svg { width: 16px; height: 16px; }
+
+    /* ─────────────────────────────────────────
+       RESPONSIVE
+    ───────────────────────────────────────── */
+    @media(max-width: 1024px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .devices-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media(max-width: 680px) {
+      .hero { padding: 0 5vw 6vh; }
+      .hero-title { font-size: clamp(2.2rem, 10vw, 3rem); }
+      .hero-desc { font-size: .9rem; }
+      .btn-play, .btn-info { padding: .75rem 1.3rem; font-size: .9rem; }
+      .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .cta-banner { padding: 2.5rem 1.5rem; }
+      .plans-grid { grid-template-columns: 1fr; }
+      .scroll-hint { display: none; }
+    }
+
+    /* ─────────────────────────────────────────
+       FADE-IN ANIMATION
+    ───────────────────────────────────────── */
+    .fade-up {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: none; }
+
+    /* Stagger children */
+    .stagger > * { opacity: 0; transform: translateY(20px); transition: opacity .5s ease, transform .5s ease; }
+    .stagger.visible > *:nth-child(1) { opacity: 1; transform: none; transition-delay: 0s; }
+    .stagger.visible > *:nth-child(2) { opacity: 1; transform: none; transition-delay: .1s; }
+    .stagger.visible > *:nth-child(3) { opacity: 1; transform: none; transition-delay: .2s; }
+    .stagger.visible > *:nth-child(4) { opacity: 1; transform: none; transition-delay: .3s; }
+    .stagger.visible > *:nth-child(5) { opacity: 1; transform: none; transition-delay: .4s; }
+    .stagger.visible > *:nth-child(6) { opacity: 1; transform: none; transition-delay: .5s; }
+
+    /* top hero entrance */
+    @keyframes heroSlideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .hero-tag     { animation: heroSlideUp .8s .2s both; }
+    .hero-title   { animation: heroSlideUp .8s .35s both; }
+    .hero-meta    { animation: heroSlideUp .8s .5s both; }
+    .hero-desc    { animation: heroSlideUp .8s .6s both; }
+    .hero-actions { animation: heroSlideUp .8s .72s both; }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="nav" id="mainNav">
+    <a href="#" class="nav-logo">VELOX</a>
+    <ul class="nav-links">
+      <li><a href="#trending">Destaques</a></li>
+      <li><a href="#series">Séries</a></li>
+      <li><a href="#filmes">Filmes</a></li>
+      <li><a href="#planos">Planos</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="btn-ghost">Entrar</button>
+      <button class="btn-gold">Assinar Agora</button>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- mobile menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#trending">Destaques</a>
+    <a href="#series">Séries</a>
+    <a href="#filmes">Filmes</a>
+    <a href="#planos">Planos</a>
+    <a href="#faq">FAQ</a>
+    <div class="mobile-menu-btns">
+      <button class="btn-ghost">Entrar</button>
+      <button class="btn-gold">Assinar Agora</button>
+    </div>
+  </div>
+
+  <!-- ─── HERO ─── -->
+  <section class="hero" id="hero">
+    <div class="hero-bg-img"></div>
+    <div class="hero-bg"></div>
+    <div class="hero-grain"></div>
+
+    <div class="hero-tag">Em Destaque Agora</div>
+    <h1 class="hero-title">O Último<br/><em>Horizonte</em></h1>
+    <div class="hero-meta">
+      <span class="rating">★ 9.4</span>
+      <span class="dot"></span>
+      <span>2024</span>
+      <span class="dot"></span>
+      <span>2h 18min</span>
+      <span class="dot"></span>
+      <span class="badge">4K</span>
+      <span class="badge hd">HDR</span>
+    </div>
+    <p class="hero-desc">
+      Uma saga épica de sobrevivência e redenção num mundo que perdeu a fé. Vencedor de 4 prêmios internacionais e aclamado como obra-prima do cinema moderno.
+    </p>
+    <div class="hero-actions">
+      <button class="btn-play">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Assistir Agora
+      </button>
+      <button class="btn-info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        Mais Detalhes
+      </button>
+    </div>
+
+    <div class="scroll-hint">
+      <span>Explorar</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ─── CATEGORY PILLS ─── -->
+  <div class="categories">
+    <div class="pills">
+      <button class="pill active">Todos</button>
+      <button class="pill">Ação</button>
+      <button class="pill">Drama</button>
+      <button class="pill">Thriller</button>
+      <button class="pill">Ficção Científica</button>
+      <button class="pill">Documentário</button>
+      <button class="pill">Terror</button>
+      <button class="pill">Comédia</button>
+      <button class="pill">Romance</button>
+      <button class="pill">Animação</button>
+      <button class="pill">Crime</button>
+    </div>
+  </div>
+
+  <!-- ─── TRENDING ─── -->
+  <section id="trending">
+    <div class="section-header fade-up">
+      <div>
+        <div class="section-label">Esta Semana</div>
+        <h2 class="section-title">Em Alta Agora</h2>
+      </div>
+      <a href="#" class="see-all">Ver Todos →</a>
+    </div>
+    <div class="rail stagger" id="trendingRail">
+      <!-- cards injected by JS -->
+    </div>
+  </section>
+
+  <!-- ─── FEATURED ─── -->
+  <section id="featured">
+    <div class="section-header fade-up">
+      <div>
+        <div class="section-label">Coleção Exclusiva</div>
+        <h2 class="section-title">Originais VELOX</h2>
+      </div>
+      <a href="#" class="see-all">Ver Todos →</a>
+    </div>
+    <div class="featured-strip stagger">
+      <div class="featured-card">
+        <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=700&auto=format&fit=crop" alt="Cinema"/>
+        <div class="featured-card-overlay">
+          <div class="featured-card-tag">Original VELOX · Série</div>
+          <div class="featured-card-title">Côdigo Sombra</div>
+          <div class="featured-card-sub"><span>★ 8.9</span><span>·</span><span>3 Temporadas</span></div>
+        </div>
+      </div>
+      <div class="featured-card">
+        <img src="https://images.unsplash.com/photo-1574267432553-4b4628081c31?w=700&auto=format&fit=crop" alt="Sci-fi"/>
+        <div class="featured-card-overlay">
+          <div class="featured-card-tag">Original VELOX · Filme</div>
+          <div class="featured-card-title">Além do Éter</div>
+          <div class="featured-card-sub"><span>★ 9.1</span><span>·</span><span>1h 52min</span></div>
+        </div>
+      </div>
+      <div class="featured-card">
+        <img src="https://images.unsplash.com/photo-1635805737707-575885ab0820?w=700&auto=format&fit=crop" alt="Space"/>
+        <div class="featured-card-overlay">
+          <div class="featured-card-tag">Original VELOX · Documentário</div>
+          <div class="featured-card-title">Fronteira Zero</div>
+          <div class="featured-card-sub"><span>★ 9.4</span><span>·</span><span>4 Episódios</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SERIES ─── -->
+  <section id="series">
+    <div class="section-header fade-up">
+      <div>
+        <div class="section-label">Maratone Já</div>
+        <h2 class="section-title">Séries Imperdíveis</h2>
+      </div>
+      <a href="#" class="see-all">Ver Todas →</a>
+    </div>
+    <div class="rail stagger" id="seriesRail"></div>
+  </section>
+
+  <!-- ─── FILMES ─── -->
+  <section id="filmes">
+    <div class="section-header fade-up">
+      <div>
+        <div class="section-label">Última Adição</div>
+        <h2 class="section-title">Filmes em Destaque</h2>
+      </div>
+      <a href="#" class="see-all">Ver Todos →</a>
+    </div>
+    <div class="rail stagger" id="filmesRail"></div>
+  </section>
+
+  <!-- ─── STATS ─── -->
+  <div class="stats-band fade-up">
+    <div class="stat-item">
+      <div class="stat-num">8K+</div>
+      <div class="stat-label">Títulos Disponíveis</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">47M</div>
+      <div class="stat-label">Assinantes Ativos</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">190+</div>
+      <div class="stat-label">Países</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">4K</div>
+      <div class="stat-label">Ultra HD & HDR</div>
+    </div>
+  </div>
+
+  <!-- ─── DEVICES ─── -->
+  <section class="devices-section" id="devices">
+    <div class="devices-grid">
+      <div class="devices-text fade-up">
+        <div class="section-label">Em Qualquer Lugar</div>
+        <h2 class="section-title">Assista em Todos<br/>os Seus Dispositivos</h2>
+        <p>Do cinefólio de uma smart TV à tela do seu celular, o VELOX acompanha você onde quer que vá — sem interrupções, sem compromissos.</p>
+        <div class="devices-icons">
+          <div class="device-icon-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Smart TV
+          </div>
+          <div class="device-icon-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="17" r="1"/></svg>
+            Celular
+          </div>
+          <div class="device-icon-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 20h8"/></svg>
+            Notebook
+          </div>
+          <div class="device-icon-card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22h6"/></svg>
+            Tablet
+          </div>
+        </div>
+      </div>
+      <div class="devices-visual">
+        <div class="glow-orb"></div>
+        <div>
+          <div class="tv-frame">
+            <div class="tv-screen">
+              <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&auto=format&fit=crop" alt="TV Screen"/>
+              <div class="tv-screen-ui">
+                <div class="tv-title">Além do Éter</div>
+                <div class="tv-progress">
+                  <div class="tv-progress-fill"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tv-stand"></div>
+          <div class="tv-base"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PLANS ─── -->
+  <section id="planos">
+    <div class="section-header fade-up" style="flex-direction:column;align-items:center;text-align:center;gap:.5rem">
+      <div class="section-label">Escolha o Seu</div>
+      <h2 class="section-title">Planos para Cada Estilo</h2>
+      <p style="color:var(--muted);font-size:.9rem;max-width:440px;margin-top:.4rem">Cancele quando quiser. Sem contratos. Sem surpresas.</p>
+    </div>
+    <div class="plans-grid fade-up">
+      <div class="plan-card">
+        <div class="plan-tier">Básico</div>
+        <div class="plan-price"><sup>R$</sup>22<sub>/mês</sub></div>
+        <p class="plan-desc">Para quem está começando sua jornada VELOX.</p>
+        <ul class="plan-features">
+          <li>Full HD 1080p</li>
+          <li>1 tela simultânea</li>
+          <li>5.000+ títulos</li>
+          <li>Legendas disponíveis</li>
+        </ul>
+        <button class="plan-btn plan-btn-outline">Começar Agora</button>
+      </div>
+      <div class="plan-card featured-plan">
+        <div class="plan-tier">Premium</div>
+        <div class="plan-price"><sup>R$</sup>45<sub>/mês</sub></div>
+        <p class="plan-desc">A experiência VELOX completa para toda a família.</p>
+        <ul class="plan-features">
+          <li>4K Ultra HD + HDR</li>
+          <li>4 telas simultâneas</li>
+          <li>Catálogo completo 8K+</li>
+          <li>Download para offline</li>
+          <li>Áudio Dolby Atmos</li>
+        </ul>
+        <button class="plan-btn plan-btn-filled">Assinar Premium</button>
+      </div>
+      <div class="plan-card">
+        <div class="plan-tier">Ultra</div>
+        <div class="plan-price"><sup>R$</sup>79<sub>/mês</sub></div>
+        <p class="plan-desc">Para os verdadeiros apaixonados por cinema.</p>
+        <ul class="plan-features">
+          <li>8K + HDR10+ Dolby Vision</li>
+          <li>6 telas simultâneas</li>
+          <li>Pré-estreias exclusivas</li>
+          <li>Modo Cinéfilo</li>
+          <li>Conteúdo por trás das câmeras</li>
+          <li>Suporte prioritário 24/7</li>
+        </ul>
+        <button class="plan-btn plan-btn-outline">Assinar Ultra</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── CTA BANNER ─── -->
+  <div class="cta-banner fade-up">
+    <div class="cta-text">
+      <div class="section-label">7 Dias Grátis</div>
+      <h2>Experimente Sem<br/>Compromisso</h2>
+      <p>Sem cartão de crédito. Cancele quando quiser.</p>
+    </div>
+    <div class="cta-actions">
+      <button class="btn-gold" style="padding:.85rem 2rem;font-size:.95rem">Teste Grátis por 7 Dias</button>
+    </div>
+  </div>
+
+  <!-- ─── FAQ ─── -->
+  <section id="faq" style="padding:5rem 5vw">
+    <div class="section-header fade-up" style="flex-direction:column;align-items:center;text-align:center;gap:.5rem;margin-bottom:3rem">
+      <div class="section-label">Tire Suas Dúvidas</div>
+      <h2 class="section-title">Perguntas Frequentes</h2>
+    </div>
+    <div class="faq-list fade-up">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          O que é o VELOX?
+          <span class="faq-icon"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6h10"/></svg></span>
+        </button>
+        <div class="faq-a">O VELOX é um serviço premium de streaming que oferece mais de 8.000 títulos em 4K Ultra HD, incluindo filmes, séries, documentários e conteúdo original exclusivo. Assista quando quiser, onde quiser, em qualquer dispositivo.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Posso cancelar a qualquer momento?
+          <span class="faq-icon"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6h10"/></svg></span>
+        </button>
+        <div class="faq-a">Sim, totalmente. Não existe contrato de fidelidade. Você pode cancelar sua assinatura a qualquer momento, direto pelo seu perfil, sem taxas ou burocracia.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Em quantos dispositivos posso assistir?
+          <span class="faq-icon"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6h10"/></svg></span>
+        </button>
+        <div class="faq-a">Depende do seu plano: Básico permite 1 tela simultânea, Premium até 4 telas e Ultra até 6 telas ao mesmo tempo. Você pode cadastrar quantos dispositivos quiser na sua conta.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          O VELOX tem conteúdo em português?
+          <span class="faq-icon"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6h10"/></svg></span>
+        </button>
+        <div class="faq-a">Sim! Todo o catálogo está disponível com dublagem e legendas em português do Brasil. Além disso, contamos com produções originais brasileiras exclusivas para o mercado nacional.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Como funciona o teste grátis de 7 dias?
+          <span class="faq-icon"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 1v10M1 6h10"/></svg></span>
+        </button>
+        <div class="faq-a">Você cria uma conta, escolhe seu plano e tem 7 dias de acesso completo sem cobrança alguma. Se decidir ficar, sua cobrança começa automaticamente no 8º dia. Se cancelar antes, não pagará nada.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo">VELOX</a>
+        <p>A plataforma de streaming premium que redefine a forma de assistir. Qualidade de cinema na palma da sua mão.</p>
+        <div class="social-row" style="margin-top:1.5rem">
+          <button class="social-btn" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </button>
+          <button class="social-btn" aria-label="Twitter/X">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </button>
+          <button class="social-btn" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.593 7.203a2.506 2.506 0 0 0-1.762-1.766C18.265 5.007 12 5 12 5s-6.264-.007-7.831.404a2.56 2.56 0 0 0-1.766 1.778c-.413 1.566-.417 4.814-.417 4.814s-.004 3.264.406 4.814c.23.857.905 1.534 1.763 1.765 1.582.43 7.83.437 7.83.437s6.265.007 7.831-.403a2.515 2.515 0 0 0 1.767-1.763c.414-1.565.417-4.812.417-4.812s.02-3.265-.407-4.831zm-11.59 7.8v-6l5.214 3.001-5.213 2.999z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Navegar</h4>
+        <ul>
+          <li><a href="#">Início</a></li>
+          <li><a href="#">Filmes</a></li>
+          <li><a href="#">Séries</a></li>
+          <li><a href="#">Originais</a></li>
+          <li><a href="#">Documentários</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Ajuda</h4>
+        <ul>
+          <li><a href="#">Central de Ajuda</a></li>
+          <li><a href="#">Gerenciar Conta</a></li>
+          <li><a href="#">Configurações</a></li>
+          <li><a href="#">Dispositivos</a></li>
+          <li><a href="#">Contato</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Empresa</h4>
+        <ul>
+          <li><a href="#">Sobre o VELOX</a></li>
+          <li><a href="#">Carreiras</a></li>
+          <li><a href="#">Imprensa</a></li>
+          <li><a href="#">Privacidade</a></li>
+          <li><a href="#">Termos de Uso</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2024 VELOX Streaming. Todos os direitos reservados.</p>
+      <p style="color:var(--dim)">Feito com ♥ para cinéfilos apaixonados.</p>
+    </div>
+  </footer>
+
+  <script>
+    /* ── DATA ── */
+    const movies = [
+      { title:"Abismo Eterno",    year:"2024", genre:"Thriller",  rating:"9.1", img:"https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&auto=format&fit=crop&h=600" },
+      { title:"Neon Dystopia",    year:"2023", genre:"Sci-Fi",    rating:"8.8", img:"https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&auto=format&fit=crop&h=600" },
+      { title:"Florescer",        year:"2024", genre:"Drama",     rating:"9.3", img:"https://images.unsplash.com/photo-1574267432553-4b4628081c31?w=400&auto=format&fit=crop&h=600" },
+      { title:"Caçador de Sombras",year:"2023",genre:"Crime",     rating:"8.5", img:"https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&auto=format&fit=crop&h=600" },
+      { title:"Éden Perdido",     year:"2024", genre:"Aventura",  rating:"8.9", img:"https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400&auto=format&fit=crop&h=600" },
+      { title:"Vórtice",          year:"2024", genre:"Ação",      rating:"8.7", img:"https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&auto=format&fit=crop&h=600" },
+      { title:"A Última Noite",   year:"2023", genre:"Horror",    rating:"8.2", img:"https://images.unsplash.com/photo-1542204165-65bf26472b9b?w=400&auto=format&fit=crop&h=600" },
+    ];
+
+    const series = [
+      { title:"Raiz Negra",       year:"T3",  genre:"Drama",    rating:"9.2", img:"https://images.unsplash.com/photo-1563720223185-11003d516935?w=400&auto=format&fit=crop&h=600" },
+      { title:"Protocolo Omega",  year:"T2",  genre:"Thriller", rating:"9.0", img:"https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?w=400&auto=format&fit=crop&h=600" },
+      { title:"Cidade Partida",   year:"T1",  genre:"Crime",    rating:"8.8", img:"https://images.unsplash.com/photo-1504208434309-cb69f4fe52b0?w=400&auto=format&fit=crop&h=600" },
+      { title:"Silício e Alma",   year:"T2",  genre:"Sci-Fi",   rating:"9.4", img:"https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&auto=format&fit=crop&h=600" },
+      { title:"Entre Marés",      year:"T1",  genre:"Romance",  rating:"8.6", img:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&auto=format&fit=crop&h=600" },
+      { title:"Carvão Branco",    year:"T4",  genre:"Drama",    rating:"8.9", img:"https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&auto=format&fit=crop&h=600" },
+    ];
+
+    function buildCard(item) {
+      return `
+        <div class="card">
+          <div class="card-thumb-wrap">
+            <img class="card-thumb" src="${item.img}" alt="${item.title}" loading="lazy"/>
+            <div class="card-play-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#08090B"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <div class="card-overlay">
+              <div class="card-overlay-title">${item.title}</div>
+              <div class="card-overlay-meta"><span class="star">★ ${item.rating}</span><span>${item.genre}</span></div>
+            </div>
+          </div>
+          <div class="card-info">
+            <div class="card-title">${item.title}</div>
+            <div class="card-sub">${item.year}<span class="genre-dot"></span>${item.genre}</div>
+          </div>
+        </div>`;
+    }
+
+    document.getElementById('trendingRail').innerHTML = [...movies].sort(()=>Math.random()-.5).map(buildCard).join('');
+    document.getElementById('seriesRail').innerHTML   = series.map(buildCard).join('');
+    document.getElementById('filmesRail').innerHTML   = movies.map(buildCard).join('');
+
+    /* ── HAMBURGER ── */
+    document.getElementById('hamburger').addEventListener('click', () => {
+      document.getElementById('mobileMenu').classList.toggle('open');
+    });
+
+    /* ── PILLS ── */
+    document.querySelectorAll('.pill').forEach(p => {
+      p.addEventListener('click', () => {
+        document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+        p.classList.add('active');
+      });
+    });
+
+    /* ── FAQ ACCORDION ── */
+    function toggleFaq(btn) {
+      const item = btn.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+    }
+
+    /* ── SCROLL ANIMATION ── */
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.fade-up, .stagger').forEach(el => observer.observe(el));
+
+    /* ── NAV SCROLL ── */
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('mainNav');
+      nav.style.background = window.scrollY > 40
+        ? 'rgba(8,9,11,.96)'
+        : 'linear-gradient(to bottom, rgba(8,9,11,.96) 60%, transparent)';
+    });
+  </script>
+</body>
+</html>
